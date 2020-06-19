@@ -1,13 +1,11 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-
 # Create your models here.
-from django.db.models.signals import post_save
 
 
 class User_status(models.Model):
-    status = models.CharField(max_length=100, null=True)
+    status = models.CharField(max_length=100, null=True, default="pending")
 
     def __str__(self):
         return self.status
@@ -15,7 +13,7 @@ class User_status(models.Model):
 
 class Customer(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
-    status = models.ForeignKey(User_status, on_delete=models.CASCADE, null=True)
+    status = models.ForeignKey(User_status, on_delete=models.CASCADE, null=True, default=1)
     mobile = models.IntegerField(null=True)
     id_card_no = models.CharField(max_length=100, null=True)
     gender = models.CharField(max_length=10, null=True)
@@ -23,12 +21,6 @@ class Customer(models.Model):
 
     def __str__(self):
         return self.user.username
-
-    def create_customer(sender, instance, created, **kwargs):
-        if created:
-            Customer.objects.create(user=instance)
-
-    post_save.connect(create_customer, sender=User)
 
 
 class Service(models.Model):
