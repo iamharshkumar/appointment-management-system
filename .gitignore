@@ -7,3 +7,6 @@ build
 static
 package-lock.json
 venv
+api/migrations
+.idea
+.vscode

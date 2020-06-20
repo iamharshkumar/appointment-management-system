@@ -1,19 +1,15 @@
 from django.contrib.auth import authenticate
-from django.views.decorators.csrf import csrf_exempt
 from rest_framework.authtoken.models import Token
 
 from django.contrib.auth.models import User
-from rest_framework.decorators import permission_classes, api_view
-from rest_framework.permissions import AllowAny
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 
 from api.models import User_status, Customer
 
 
-@csrf_exempt
 @api_view(["POST"])
-@permission_classes((AllowAny,))
 def Signup(request):
     f = request.data.get('fname')
     l = request.data.get('lname')
@@ -32,9 +28,7 @@ def Signup(request):
                     status=HTTP_200_OK)
 
 
-@csrf_exempt
 @api_view(["POST"])
-@permission_classes((AllowAny,))
 def login(request):
     u = request.data.get('uname')
     p = request.data.get('pwd')
@@ -51,7 +45,17 @@ def login(request):
                             status=HTTP_200_OK)
         else:
             return Response({'error': "Admin not accept request"})
-    token, _ = Token.objects.get_or_create(user=user)
-    return Response({'key': token.key},
-                    status=HTTP_200_OK)
 
+
+@api_view(["POST"])
+def Admin_login(request):
+    u = request.data.get('uname')
+    p = request.data.get('pwd')
+    user = authenticate(username=u, password=p)
+    if user.is_staff:
+        token, _ = Token.objects.get_or_create(user=user)
+        return Response({'key': token.key},
+                        status=HTTP_200_OK)
+    else:
+        return Response({"error": "User is not an admin"},
+                        status=HTTP_200_OK)
