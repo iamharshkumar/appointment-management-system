@@ -1,13 +1,13 @@
 from django.contrib.auth import authenticate
 from rest_framework.authtoken.models import Token
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
 from rest_framework.views import APIView
 from django.contrib.auth.models import User
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 
-from api.models import User_status, Customer
+from api.models import Customer
 from api.serializers import *
 
 
@@ -22,10 +22,11 @@ class Signup(APIView):
         id1 = request.data.get('licence')
         gen = request.data.get('gender')
         con = request.data.get('contact')
+        sta = "Pending"
         user = User.objects.create(username=u, first_name=f, last_name=l)
         user.set_password(p)
         user.save()
-        sign = Customer.objects.create(user=user, mobile=con, image=i, gender=gen, id_card_no=id1)
+        sign = Customer.objects.create(status=sta, user=user, mobile=con, image=i, gender=gen, id_card_no=id1)
         token, _ = Token.objects.get_or_create(user=user)
         return Response({'key': token.key},
                         status=HTTP_200_OK)
@@ -86,9 +87,9 @@ class Admin_home(APIView):
         if user:
             if user.is_staff:
                 for i in q:
-                    if i.status.status == "pending":
+                    if i.status == "Pending":
                         new += 1
-                    elif i.status.status == "Accept":
+                    elif i.status == "Accept":
                         confirm += 1
                     total += 1
             else:
@@ -99,3 +100,14 @@ class Admin_home(APIView):
                             status=HTTP_400_BAD_REQUEST)
         return Response({"new": new, "confirm": confirm, "total": total},
                         status=HTTP_200_OK)
+
+
+class View_user(APIView):
+    serializer_class = CustomerSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def get(self, request):
+        pro = Customer.objects.all()
+
+        serializer = self.serializer_class(pro, many=True).data
+        return Response(serializer, HTTP_200_OK)

@@ -17,6 +17,9 @@ class AppointmentSerializer(serializers.ModelSerializer):
 
 
 class CustomerSerializer(serializers.ModelSerializer):
+    status = serializers.SerializerMethodField()
+    user = serializers.SerializerMethodField()
+
     class Meta:
         model = Customer
         fields = (
@@ -28,3 +31,9 @@ class CustomerSerializer(serializers.ModelSerializer):
             'gender',
             'image'
         )
+
+    def get_status(self, obj):
+        return obj.get_status_display()
+
+    def get_user(self, obj):
+        return obj.user.username
