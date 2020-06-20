@@ -1,5 +1,6 @@
 from django.contrib.auth import authenticate
 from rest_framework.authtoken.models import Token
+from rest_framework.permissions import IsAuthenticated
 
 from rest_framework.views import APIView
 from django.contrib.auth.models import User
@@ -7,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 
 from api.models import User_status, Customer
+from api.serializers import *
 
 
 class Signup(APIView):
@@ -64,3 +66,36 @@ class Admin_login(APIView):
             return Response({"error": "User is not an admin"},
                             status=HTTP_200_OK)
 
+
+class Admin_home(APIView):
+    serializer_class = AppointmentSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user_id = User.objects.get(username=request.user).id
+        q = Appointment.objects.all()
+        new = 0
+        confirm = 0
+        total = 0
+
+        if user_id is None:
+            return Response({"message": "User id is not given"},
+                            status=HTTP_400_BAD_REQUEST)
+
+        user = User.objects.get(id=user_id)
+        if user:
+            if user.is_staff:
+                for i in q:
+                    if i.status.status == "pending":
+                        new += 1
+                    elif i.status.status == "Accept":
+                        confirm += 1
+                    total += 1
+            else:
+                return Response({"message": "Please logged in as Admin"},
+                                status=HTTP_400_BAD_REQUEST)
+        else:
+            return Response({"message": "User is not logged in"},
+                            status=HTTP_400_BAD_REQUEST)
+        return Response({"new": new, "confirm": confirm, "total": total},
+                        status=HTTP_200_OK)
