@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.views import APIView
 from django.contrib.auth.models import User
 from rest_framework.response import Response
-from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
+from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND, HTTP_201_CREATED
 
 from api.models import Customer
 from api.serializers import *
@@ -110,4 +110,105 @@ class View_user(APIView):
         pro = Customer.objects.all()
 
         serializer = self.serializer_class(pro, many=True).data
+        return Response(serializer, HTTP_200_OK)
+
+
+class View_New_user(APIView):
+    serializer_class = CustomerSerializer
+    permission_classes = IsAuthenticated, IsAdminUser
+
+    def get(self, request):
+        q = Customer.objects.filter(status="Pending")
+
+        serializer = self.serializer_class(q, many=True).data
+        return Response(serializer, HTTP_200_OK)
+
+
+class Assign_user_status(APIView):
+    permission_classes = IsAuthenticated, IsAdminUser
+
+    def post(self, request):
+        status = request.data.get("status")
+        customer_id = request.data.get("cust_id")
+        customer = Customer.objects.get(id=customer_id)
+        customer.status = status
+        customer.save()
+        return Response({"message": "User status changed successfully"}, HTTP_200_OK)
+
+
+class View_New_Appointment(APIView):
+    serializer_class = AppointmentSerializer
+    permission_classes = IsAuthenticated, IsAdminUser
+
+    def get(self, request):
+        q = Appointment.objects.filter(status="Pending")
+        serializer = self.serializer_class(q, many=True).data
+        return Response(serializer, HTTP_200_OK)
+
+
+class View_Confirm_Appointment(APIView):
+    serializer_class = AppointmentSerializer
+    permission_classes = IsAuthenticated, IsAdminUser
+
+    def get(self, request):
+        q = Appointment.objects.filter(status="Accept")
+        serializer = self.serializer_class(q, many=True).data
+        return Response(serializer, HTTP_200_OK)
+
+
+class All_Appointment(APIView):
+    serializer_class = AppointmentSerializer
+    permission_classes = IsAuthenticated, IsAdminUser
+
+    def get(self, request):
+        q = Appointment.objects.all()
+        serializer = self.serializer_class(q, many=True).data
+        return Response(serializer, HTTP_200_OK)
+
+
+class Assign_book_status(APIView):
+    serializer_class = AppointmentSerializer
+    permission_classes = IsAuthenticated, IsAdminUser
+
+    def post(self, request):
+        appointment_id = request.data.get("apt_id")
+        status = request.data.get('status')
+        appointment = Appointment.objects.get(id=appointment_id)
+        appointment.status = status
+        appointment.save()
+
+        return Response({"message": "Appointment status changed successfully"}, HTTP_200_OK)
+
+
+class View_service(APIView):
+    serializer_class = ServiceSerializer
+
+    def get(self, request):
+        q = Service.objects.all()
+        serializer = self.serializer_class(q, many=True).data
+        return Response(serializer, HTTP_200_OK)
+
+
+class Add_service(APIView):
+    permission_classes = IsAuthenticated, IsAdminUser
+
+    def post(self, request):
+        name = request.data.get("name")
+        cost = request.data.get("cost")
+        image = request.data.get("image")
+        if name is None or cost is None or image is None:
+            return Response({"message": "Please fill out all the fields"}, HTTP_400_BAD_REQUEST)
+
+        Service.objects.create(name=name, cost=cost, image=image)
+        return Response({"message": "Service has been created successfully"}, HTTP_201_CREATED)
+
+
+class Profile(APIView):
+    serializer_class = CustomerSerializer
+    permission_classes = [IsAuthenticated, ]
+
+    def get(self, request):
+        user = User.objects.get(username=request.user).id
+        customer = Customer.objects.get(user=user)
+        serializer = self.serializer_class(customer).data
         return Response(serializer, HTTP_200_OK)

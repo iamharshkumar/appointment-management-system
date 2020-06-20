@@ -2,7 +2,16 @@ from rest_framework import serializers
 from .models import *
 
 
+class ServiceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Service
+        fields = ("id", "name", "cost", "image")
+
+
 class AppointmentSerializer(serializers.ModelSerializer):
+    service = serializers.SerializerMethodField()
+    customer = serializers.SerializerMethodField()
+
     class Meta:
         model = Appointment
         fields = (
@@ -14,6 +23,12 @@ class AppointmentSerializer(serializers.ModelSerializer):
             'date1',
             'time1'
         )
+
+    def get_service(self, obj):
+        return obj.service.name
+
+    def get_customer(self, obj):
+        return obj.customer.user.username
 
 
 class CustomerSerializer(serializers.ModelSerializer):
