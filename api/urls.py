@@ -20,5 +20,6 @@ urlpatterns = [
     path('book-appointment', Book_appointment.as_view(), name='book-appointment'),
     path('delete-appointment', delete_appointment.as_view(), name='delete-appointment'),
     path('delete-service', delete_service.as_view(), name='delete-service'),
+    path('delete-user', delete_user.as_view(), name='delete-user'),
 
 ]

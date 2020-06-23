@@ -296,3 +296,17 @@ class delete_service(APIView):
             return Response({"message": "Service delete successful"}, HTTP_200_OK)
         else:
             return Response({"message": "Only admin can delete or create service"}, HTTP_400_BAD_REQUEST)
+
+
+class delete_user(APIView):
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def post(self, request):
+        user = User.objects.get(username=request.user)
+        user_id = request.data.get("id")
+        if user.is_staff:
+            data = User.objects.get(id=user_id)
+            data.delete()
+            return Response({"message": "User delete successful"}, HTTP_200_OK)
+        else:
+            return Response({"message": "Only admin can delete or create user"}, HTTP_400_BAD_REQUEST)
