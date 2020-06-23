@@ -17,6 +17,11 @@ class Signup(APIView):
         f = request.data.get('fname')
         l = request.data.get('lname')
         u = request.data.get('uname')
+        try:
+            user = User.objects.get(username=u)
+            return Response({"message": "Username already exits"}, HTTP_200_OK)
+        except:
+            pass
         i = request.data.get('image')
         p = request.data.get('pwd')
         id1 = request.data.get('licence')
@@ -212,3 +217,51 @@ class Profile(APIView):
         customer = Customer.objects.get(user=user)
         serializer = self.serializer_class(customer).data
         return Response(serializer, HTTP_200_OK)
+
+
+class Edit_profile(APIView):
+    permission_classes = [IsAuthenticated, ]
+
+    def patch(self, request):
+        user = User.objects.get(username=request.user)
+        customer = Customer.objects.get(user=user)
+
+        f = request.data.get('fname')
+        l = request.data.get('lname')
+        u = request.data.get('uname')
+        i = request.data.get('image')
+
+        id1 = request.data.get('licence')
+        con = request.data.get('contact')
+        try:
+            user = User.objects.get(username=u)
+            return Response({"message": "Username already exits"}, HTTP_200_OK)
+        except User.DoesNotExist:
+            user.username = u
+
+        user.first_name = f
+        user.last_name = l
+        customer.image = i
+        customer.id_card_no = id1
+        customer.mobile = con
+        user.save()
+        customer.save()
+        return Response({"message": "Profile update successful"}, HTTP_200_OK)
+
+
+class Book_appointment(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = User.objects.get(username=request.user)
+        customer = Customer.objects.get(user=user)
+        paid = request.data.get('booking')
+        service_id = request.data.get("service")
+        service = Service.objects.get(id=service_id)
+        booking = Booking_Paid.objects.get(id=paid)
+        date = request.data.get('date')
+        time = request.data.get('time')
+        status = "Pending"
+        Appointment.objects.create(service=service, customer=customer, status=status, paid=booking,
+                                   date1=date, time1=time)
+        return Response({"message": "Appointment create successfully"}, status=HTTP_201_CREATED)

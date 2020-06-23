@@ -16,5 +16,7 @@ urlpatterns = [
     path('view-service', View_service.as_view(), name='view-service'),
     path('add-service', Add_service.as_view(), name='add-service'),
     path('user-profile', Profile.as_view(), name='user-profile'),
+    path('edit-profile', Edit_profile.as_view(), name='edit-profile'),
+    path('book-appointment', Book_appointment.as_view(), name='book-appointment'),
 
 ]

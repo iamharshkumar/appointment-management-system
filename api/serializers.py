@@ -34,11 +34,15 @@ class AppointmentSerializer(serializers.ModelSerializer):
 class CustomerSerializer(serializers.ModelSerializer):
     status = serializers.SerializerMethodField()
     user = serializers.SerializerMethodField()
+    first_name = serializers.SerializerMethodField()
+    last_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Customer
         fields = (
             'id',
+            'first_name',
+            'last_name',
             'user',
             'status',
             'mobile',
@@ -52,3 +56,9 @@ class CustomerSerializer(serializers.ModelSerializer):
 
     def get_user(self, obj):
         return obj.user.username
+
+    def get_first_name(self, obj):
+        return obj.user.first_name
+
+    def get_last_name(self, obj):
+        return obj.user.last_name
