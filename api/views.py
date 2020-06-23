@@ -265,3 +265,34 @@ class Book_appointment(APIView):
         Appointment.objects.create(service=service, customer=customer, status=status, paid=booking,
                                    date1=date, time1=time)
         return Response({"message": "Appointment create successfully"}, status=HTTP_201_CREATED)
+
+
+class delete_appointment(APIView):
+    permission_classes = [IsAuthenticated, ]
+
+    def post(self, request):
+        user = User.objects.get(username=request.user)
+        customer = Customer.objects.get(user=user).id
+        apt_id = request.data.get('id')
+        apt = Appointment.objects.filter(customer=customer, id=apt_id)
+        if apt_id:
+            if apt.exists():
+                data = Appointment.objects.get(id=apt_id)
+                data.delete()
+                return Response({"message": "Appointment delete successful"}, HTTP_200_OK)
+            else:
+                return Response({"message": "You can not delete this appointment"}, HTTP_400_BAD_REQUEST)
+
+
+class delete_service(APIView):
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def post(self, request):
+        user = User.objects.get(username=request.user)
+        service_id = request.data.get("id")
+        if user.is_staff:
+            data = Service.objects.get(id=service_id)
+            data.delete()
+            return Response({"message": "Service delete successful"}, HTTP_200_OK)
+        else:
+            return Response({"message": "Only admin can delete or create service"}, HTTP_400_BAD_REQUEST)
